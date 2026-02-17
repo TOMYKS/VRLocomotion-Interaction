@@ -98,7 +98,7 @@ public class SelectionTaskMeasure : MonoBehaviour
         isCountdown = true;
         completeCount += 1;
 
-        if (completeCount > 4)
+        if (completeCount > 1)
         {
             taskStartPanel.SetActive(false);
             scoreText.text = "Done Part" + part.ToString();

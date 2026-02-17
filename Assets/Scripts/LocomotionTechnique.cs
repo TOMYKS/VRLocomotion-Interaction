@@ -3,15 +3,14 @@
 public class LocomotionTechnique : MonoBehaviour
 {
     // Please implement your locomotion technique in this script. 
-    public OVRInput.Controller leftController;
-    public OVRInput.Controller rightController;
-    [Range(0, 10)] public float translationGain = 0.5f;
-    public GameObject hmd;
-    [SerializeField] private float leftTriggerValue;    
-    [SerializeField] private float rightTriggerValue;
-    [SerializeField] private Vector3 startPos;
-    [SerializeField] private Vector3 offset;
-    [SerializeField] private bool isIndexTriggerDown;
+    [Header("Paper Plane Setup")]
+    public GameObject planePrefab;      
+    public Transform holsterTransform; 
+    public GameObject hmd;              
+
+    private GameObject currentPlane;
+    [Header("Ground Detection")]
+    public LayerMask groundLayer;
 
 
     /////////////////////////////////////////////////////////
@@ -22,61 +21,56 @@ public class LocomotionTechnique : MonoBehaviour
     
     void Start()
     {
+        SpawnPlane();
+    }
+    public void OnPlaneLanded(Vector3 landingPos)
+    {
+
+        Vector3 targetPos = landingPos;
+  
+        RaycastHit hit;
         
+        if (Physics.Raycast(landingPos + Vector3.up * 0.5f, Vector3.down, out hit, 2.0f))
+        {
+           
+            targetPos.y = hit.point.y;
+        }
+
+        transform.position = targetPos;
+
+    
+        SpawnPlane();
     }
 
+    public void SpawnPlane()
+    {
+
+        
+        currentPlane = Instantiate(planePrefab, holsterTransform.position, holsterTransform.rotation);
+
+        
+        currentPlane.transform.SetParent(holsterTransform);
+        currentPlane.transform.localPosition = Vector3.zero;
+        currentPlane.transform.localRotation = Quaternion.identity;
+
+        
+        PaperPlane planeScript = currentPlane.GetComponent<PaperPlane>();
+        if (planeScript) planeScript.Initialize(this);
+    }
+
+    public void CollectCoin(GameObject coinObject)
+    {
+        if (parkourCounter != null)
+        {
+            parkourCounter.coinCount += 1;
+            
+            GetComponent<AudioSource>()?.Play();
+            coinObject.SetActive(false);
+           
+        }
+    }
     void Update()
     {
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Please implement your LOCOMOTION TECHNIQUE in this script :D.
-        leftTriggerValue = OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger, leftController); 
-        rightTriggerValue = OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger, rightController); 
-
-        if (leftTriggerValue > 0.95f && rightTriggerValue > 0.95f)
-        {
-            if (!isIndexTriggerDown)
-            {
-                isIndexTriggerDown = true;
-                startPos = (OVRInput.GetLocalControllerPosition(leftController) + OVRInput.GetLocalControllerPosition(rightController)) / 2;
-            }
-            offset = hmd.transform.forward.normalized *
-                    (OVRInput.GetLocalControllerPosition(leftController) - startPos +
-                    (OVRInput.GetLocalControllerPosition(rightController) - startPos)).magnitude;
-            Debug.DrawRay(startPos, offset, Color.red, 0.2f);
-        }
-        else if (leftTriggerValue > 0.95f && rightTriggerValue < 0.95f)
-        {
-            if (!isIndexTriggerDown)
-            {
-                isIndexTriggerDown = true;
-                startPos = OVRInput.GetLocalControllerPosition(leftController);
-            }
-            offset = hmd.transform.forward.normalized *
-                     (OVRInput.GetLocalControllerPosition(leftController) - startPos).magnitude;
-            Debug.DrawRay(startPos, offset, Color.red, 0.2f);
-        }
-        else if (leftTriggerValue < 0.95f && rightTriggerValue > 0.95f)
-        {
-            if (!isIndexTriggerDown)
-            {
-                isIndexTriggerDown = true;
-                startPos = OVRInput.GetLocalControllerPosition(rightController);
-            }
-           offset = hmd.transform.forward.normalized *
-                    (OVRInput.GetLocalControllerPosition(rightController) - startPos).magnitude;
-            Debug.DrawRay(startPos, offset, Color.red, 0.2f);
-        }
-        else
-        {
-            if (isIndexTriggerDown)
-            {
-                isIndexTriggerDown = false;
-                offset = Vector3.zero;
-            }
-        }
-        transform.position = transform.position + offset * translationGain;
-
-
         ////////////////////////////////////////////////////////////////////////////////
         // These are for the game mechanism.
         if (OVRInput.Get(OVRInput.Button.Two) || OVRInput.Get(OVRInput.Button.Four))
@@ -84,10 +78,22 @@ public class LocomotionTechnique : MonoBehaviour
             if (parkourCounter.parkourStart)
             {
                 transform.position = parkourCounter.currentRespawnPos;
+
+                SpawnPlane();
             }
         }
+        FollowGround();
     }
-
+    void FollowGround()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, Vector3.down, out hit, 2.0f, groundLayer))
+        {
+            Vector3 targetPos = transform.position;
+            targetPos.y = hit.point.y + 0.09f;
+            transform.position = targetPos;
+        }
+    }
     void OnTriggerEnter(Collider other)
     {
 

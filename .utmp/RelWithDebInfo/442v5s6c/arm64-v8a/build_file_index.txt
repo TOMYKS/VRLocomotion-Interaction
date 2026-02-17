@@ -1,0 +1,2 @@
+C:\Users\tomas\Desktop\Parkour\VR-locomotion-parkour\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\CMakeLists.txt
+C:\Users\tomas\Desktop\Parkour\VR-locomotion-parkour\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\GameActivity\CMakeLists.txt
