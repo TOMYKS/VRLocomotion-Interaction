@@ -177,7 +177,7 @@ public class PaperPlane : MonoBehaviour
                 flatForward.Normalize();
 
                 Vector3 impulse;
-                float heightLimit = 12.5f; 
+                float heightLimit = 14.5f; 
 
                 if (transform.position.y < heightLimit)
                 {
